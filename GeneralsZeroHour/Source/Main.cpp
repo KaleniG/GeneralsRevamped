@@ -1,4 +1,4 @@
-#include <SAGE/SAGE.h>
+#include <SAGE.h>
 
 int main(int argc, char* argv[])
 {

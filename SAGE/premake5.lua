@@ -20,7 +20,8 @@ project "SAGE"
 
   includedirs
   {
-    "Source"
+    "Source",
+    "Include"
   }
 
   filter { "configurations:Debug" }

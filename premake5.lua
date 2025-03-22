@@ -2,7 +2,7 @@ WORKSPACEDIR = _WORKING_DIR
 OUTPUTDIR = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
-IncludeDir["SAGE"] = "../SAGE/Include"
+IncludeDir["SAGE"] = "../SAGE/Source"
 
 workspace "GeneralsRevamped"
   startproject "GeneralsZeroHour"
