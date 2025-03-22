@@ -59,7 +59,7 @@ sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel:
 
 #define SAGE_ASSERT(x, fmt, ...) { if (!(x)) { \
 std::string message = std::format(fmt, __VA_ARGS__);\
-sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Assert, message, true);\
+sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Assert, message);\
 sage::RuntimePopUp(message); } }\
 
 #endif
