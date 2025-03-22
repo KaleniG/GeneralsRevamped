@@ -12,7 +12,7 @@ project "SAGE"
 
   files
   {
-    "Include/**.h",
+    "%{IncludeDir.json}/**.hpp",
     "Source/**.cpp",
     "Source/**.h",
     "premake5.lua"
@@ -21,7 +21,7 @@ project "SAGE"
   includedirs
   {
     "Source",
-    "Include"
+    "%{IncludeDir.json}"
   }
 
   filter { "configurations:Debug" }

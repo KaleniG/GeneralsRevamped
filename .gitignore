@@ -9,3 +9,6 @@
 # Binaries
 **/Bin/
 Bin-Int/
+
+# Log Files
+**.log

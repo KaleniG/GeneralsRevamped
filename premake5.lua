@@ -3,6 +3,7 @@ OUTPUTDIR = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
 IncludeDir["SAGE"] = "../SAGE/Source"
+IncludeDir["json"] = "Deps/json/single_include"
 
 workspace "GeneralsRevamped"
   startproject "GeneralsZeroHour"

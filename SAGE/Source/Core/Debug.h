@@ -21,7 +21,7 @@ namespace sage
   };
 
   void ConsolePrint(const std::string& time, const std::string& message, LogLevel level);
-  void SerializeLog(const std::string& date, const std::string& time, const std::string& file, const std::string& line, LogLevel level, const std::string& message);
+  void SerializeLog(const std::string& time, const std::string& file, const std::string& line, LogLevel level, const std::string& message, bool writeEnd = false);
   void DeserializeLog(const std::filesystem::path& filepath);
   void RuntimePopUp(const std::string& message);
 }
@@ -30,22 +30,22 @@ namespace sage
 #define SAGE_INFO(fmt, ...) {\
 std::string message = std::format(fmt, __VA_ARGS__);\
 sage::ConsolePrint(__TIME__, message, sage::LogLevel::Info);\
-sage::SerializeLog(__DATE__, __TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Info, message);}\
+sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Info, message);}\
 
 #define SAGE_WARN(fmt, ...) {\
 std::string message = std::format(fmt, __VA_ARGS__);\
 sage::ConsolePrint(__TIME__, message, sage::LogLevel::Warn);\
-sage::SerializeLog(__DATE__, __TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Warn, message);}\
+sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Warn, message);}\
 
 #define SAGE_ERROR(fmt, ...) {\
 std::string message = std::format(fmt, __VA_ARGS__);\
 sage::ConsolePrint(__TIME__, message, sage::LogLevel::Error);\
-sage::SerializeLog(__DATE__, __TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Error, message);}\
+sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Error, message);}\
 
 #define SAGE_ASSERT(x, fmt, ...) { if (!(x)) { \
 std::string message = std::format(fmt, __VA_ARGS__);\
 sage::ConsolePrint(__TIME__, message, sage::LogLevel::Assert);\
-sage::SerializeLog(__DATE__, __TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Assert, message);\
+sage::SerializeLog( __TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Assert, message, true);\
 SAGE_DEBUG_BREAK(); } }\
 
 #elif defined(CONFIG_FINAL)
@@ -55,11 +55,11 @@ SAGE_DEBUG_BREAK(); } }\
 
 #define SAGE_ERROR(fmt, ...) {\
 std::string message = std::format(fmt, __VA_ARGS__);\
-sage::SerializeLog(__DATE__, __TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Error, message);}\
+sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Error, message);}\
 
 #define SAGE_ASSERT(x, fmt, ...) { if (!(x)) { \
 std::string message = std::format(fmt, __VA_ARGS__);\
-sage::SerializeLog(__DATE__, __TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Assert, message);\
+sage::SerializeLog(__TIME__, __FILE__, std::to_string(__LINE__), sage::LogLevel::Assert, message, true);\
 sage::RuntimePopUp(message); } }\
 
 #endif
