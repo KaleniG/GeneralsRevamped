@@ -19,6 +19,7 @@ namespace genzh
     if (LockInstanceAndCheck(L"GeneralsZeroHour.lock") == false)
       return;
 
+    std::cin.get();
     UnlockInstance();
   }
 }
