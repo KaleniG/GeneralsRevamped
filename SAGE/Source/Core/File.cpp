@@ -4,10 +4,16 @@
 
 namespace sage
 {
+  SAGEFile::SAGEFile(const std::filesystem::path& filepath)
+    : m_Filepath(filepath) {}
+
+  DiskFile::DiskFile()
+    : SAGEFile() {}
+
   DiskFile::DiskFile(const std::filesystem::path& filepath, std::ios_base::openmode access)
-    : m_Filepath(filepath), m_Access(access), m_Filestream(filepath, access)
+    : SAGEFile(filepath), m_Filestream(filepath, access), m_Access(access)
   {
-    SAGE_ASSERT(std::filesystem::exists(m_Filepath) && !m_Filepath.empty(), "[SYSTEM] Invalid filepath '{}'", filepath.string());
+    SAGE_ASSERT(std::filesystem::exists(DiskFile::GetFilepath()) && !DiskFile::GetFilepath().empty(), "[SYSTEM] Invalid filepath '{}'", filepath.string());
     SAGE_ASSERT(m_Filestream.good() && m_Filestream.is_open(), "[SYSTEM] Failed to open the file '{}'", filepath.string());
   }
 
@@ -16,7 +22,7 @@ namespace sage
     SAGE_ASSERT(m_Filestream.good(), "[SYSTEM] The file is not good");
 
     m_Filestream.read(reinterpret_cast<char*>(buffer), bytes);
-    SAGE_ASSERT(!m_Filestream.fail(), "[SYSTEM] Failed to read from the file '{}'", m_Filepath.string());
+    SAGE_ASSERT(!m_Filestream.fail(), "[SYSTEM] Failed to read from the file '{}'", SAGEFile::GetFilepath().string());
 
     std::streamsize count = m_Filestream.gcount();
     return static_cast<int32_t>(count);
@@ -27,7 +33,7 @@ namespace sage
     SAGE_ASSERT(m_Filestream.good(), "[SYSTEM] The file is not good");
 
     m_Filestream.write(reinterpret_cast<const char*>(buffer), bytes);
-    SAGE_ASSERT(!m_Filestream.fail(), "[SYSTEM] Failed to write into the file '{}'", m_Filepath.string());
+    SAGE_ASSERT(!m_Filestream.fail(), "[SYSTEM] Failed to write into the file '{}'", SAGEFile::GetFilepath().string());
   }
 
   int32_t DiskFile::Seek(int32_t position, SeekMode mode)
@@ -113,7 +119,7 @@ namespace sage
   const std::filesystem::path& DiskFile::GetFilepath() const
   {
     SAGE_ASSERT(m_Filestream.good(), "[SYSTEM] The file is not good");
-    return m_Filepath;
+    return SAGEFile::GetFilepath();
   }
 
   bool DiskFile::GetLine(std::string& line)
@@ -123,8 +129,16 @@ namespace sage
     return false;
   }
 
+  DiskFile::operator bool() const
+  {
+    return m_Filestream.good() && m_Filestream.is_open() && !SAGEFile::GetFilepath().empty();
+  }
+
+  RAMFile::RAMFile()
+    : SAGEFile() {}
+
   RAMFile::RAMFile(const std::filesystem::path& filepath)
-    : m_Filepath(filepath), m_Position(0)
+    : SAGEFile(filepath), m_Position(0)
   {
     std::ifstream file(filepath, std::ios::binary);
     SAGE_ASSERT(file.good() && file.is_open(), "[SYSTEM] Failed to open the file '{}'", filepath.string());
@@ -140,6 +154,9 @@ namespace sage
 
     m_Data[fileSize] = '\0';
   }
+
+  RAMFile::RAMFile(const std::filesystem::path& filepath, const std::vector<char>& data)
+    : SAGEFile(filepath), m_Position(0), m_Data(data.begin(), data.end()) {}
 
   int32_t RAMFile::Read(void* buffer, int32_t bytes)
   {
@@ -176,19 +193,19 @@ namespace sage
     return m_Position;
   }
 
-  int32_t RAMFile::GetSize() const
+  int32_t RAMFile::GetSize()
   {
     SAGE_ASSERT(!m_Data.empty(), "[SYSTEM] The file is not good");
     return m_Data.size();
   }
 
-  int32_t RAMFile::GetPosition() const
+  int32_t RAMFile::GetPosition()
   {
     SAGE_ASSERT(!m_Data.empty(), "[SYSTEM] The file is not good");
     return m_Position;
   }
 
-  bool RAMFile::IsEndOfFile() const
+  bool RAMFile::IsEndOfFile()
   {
     SAGE_ASSERT(!m_Data.empty(), "[SYSTEM] The file is not good");
     return m_Position == m_Data.size();
@@ -197,6 +214,116 @@ namespace sage
   const std::filesystem::path& RAMFile::GetFilepath() const
   {
     SAGE_ASSERT(!m_Data.empty(), "[SYSTEM] The file is not good");
-    return m_Filepath;
+    return SAGEFile::GetFilepath();
+  }
+
+  bool RAMFile::GetLine(std::string& line)
+  {
+    SAGE_ASSERT(!m_Data.empty(), "[SYSTEM] The file is not good");
+
+    if (m_Position >= m_Data.size())
+      return false;
+
+    int32_t start = m_Position;
+
+    while (m_Position < m_Data.size() && m_Data[m_Position] != '\n')
+      m_Position++;
+
+    line.assign(m_Data.begin() + start, m_Data.begin() + m_Position);
+
+    if (m_Position < m_Data.size() && m_Data[m_Position] == '\n')
+      m_Position++;
+
+    return true;
+  }
+
+  RAMFile::operator bool() const
+  {
+    return !m_Data.empty() && !SAGEFile::GetFilepath().empty();
+  }
+
+  ArchiveFile::ArchiveFile(const std::filesystem::path& filepath)
+    : m_ArchiveFile(filepath, std::ios::in | std::ios::binary)
+  {
+    {
+      std::string identifier;
+      identifier.resize(4);
+      m_ArchiveFile.Read(identifier.data(), 4);
+      SAGE_ASSERT(identifier == "BIGF", "[SYSTEM] Error reading file identifier in file '{}'", filepath.string());
+    }
+
+    {
+      int32_t archiveFileSize = 0;
+      m_ArchiveFile.Read(&archiveFileSize, 4);
+      SAGE_ASSERT(archiveFileSize == m_ArchiveFile.GetSize(), "[SYSTEM] The archive file size specified int it is not coherent with actual size of the file '{}'", filepath.string());
+    }
+
+    int32_t archiveFileCount = 0;
+    m_ArchiveFile.Read(&archiveFileCount, 4);
+    archiveFileCount = std::byteswap(archiveFileCount);
+
+    m_ArchiveFile.Seek(16, SeekMode::Start);
+
+    SAGE_INFO("Archive: {} | Size: {} | FileCount: {}", filepath.string(), m_ArchiveFile.GetSize(), archiveFileCount);
+
+    for (int32_t i = 0; i < archiveFileCount; i++)
+    {
+      int32_t fileSize = 0;
+      int32_t fileOffset = 0;
+      m_ArchiveFile.Read(&fileOffset, 4);
+      m_ArchiveFile.Read(&fileSize, 4);
+      fileSize = std::byteswap(fileSize);
+      fileOffset = std::byteswap(fileOffset);
+
+      std::string archiveFilePath;
+      int32_t pathIndex = -1;
+      do
+      {
+        pathIndex++;
+        archiveFilePath.resize(pathIndex + 1);
+        m_ArchiveFile.Read(&archiveFilePath[pathIndex], 1);
+      } while (archiveFilePath[pathIndex] != '\0');
+
+      m_FileInfoList.insert(ArchivedFileInfo{ archiveFilePath , static_cast<uint32_t>(fileOffset), static_cast<uint32_t>(fileSize) });
+
+      SAGE_INFO("\t\t\tFile: {} | Size: {} | Offset: {}", archiveFilePath, fileSize, fileOffset);
+    }
+  }
+
+  RAMFile ArchiveFile::DumpFile(const std::filesystem::path& filepath)
+  {
+    for (auto it = m_FileInfoList.begin(); it != m_FileInfoList.end(); it++)
+    {
+      if (std::strcmp(it->Filepath.string().c_str(), filepath.string().c_str()) == 0)
+      {
+        std::vector<char> data;
+        data.resize(it->Size + 1);
+        m_ArchiveFile.Seek(it->Offset, SeekMode::Start);
+        m_ArchiveFile.Read(data.data(), data.size());
+        data[data.size() - 1] = '\0';
+        return RAMFile(filepath, data);
+      }
+    }
+    return RAMFile();
+  }
+
+  int32_t ArchiveFile::GetSize()
+  {
+    return m_ArchiveFile.GetSize();
+  }
+
+  int32_t ArchiveFile::GetFileCount() const
+  {
+    SAGE_ASSERT(m_ArchiveFile, "[SYSTEM] The file is not good")
+    return m_FileInfoList.size();
+  }
+  const std::filesystem::path& ArchiveFile::GetFilepath() const
+  {
+    return m_ArchiveFile.GetFilepath();
+  }
+
+  ArchiveFile::operator bool() const
+  {
+    return m_ArchiveFile;
   }
 }

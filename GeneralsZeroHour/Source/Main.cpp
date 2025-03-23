@@ -13,12 +13,14 @@ namespace genzh
 
   void main(int argc, char* argv[])
   {
+    sage::CommandLine::Init();
     sage::CommandLine::AddParameter("-nolockinstance", ParseNoLockInstance);
     sage::CommandLine::ParseArguments(argc, argv);
 
     if (LockInstanceAndCheck(L"GeneralsZeroHour.lock") == false)
       return;
 
+    sage::FileSystem::Init(std::filesystem::path(argv[0]).parent_path());
     std::cin.get();
     UnlockInstance();
   }

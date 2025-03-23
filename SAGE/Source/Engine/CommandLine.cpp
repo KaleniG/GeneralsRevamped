@@ -21,6 +21,14 @@ namespace sage
     SAGE_WARN("[SYSTEM] Log PopUp is disabled");
   }
 
+  void CommandLine::Init()
+  {
+    auto& commandMap = Get().s_CommandLineArgsToFuncMap;
+    commandMap["-nologprint"] = ParseNoLogPrint;
+    commandMap["-nologserialize"] = ParseNoLogSerialize;
+    commandMap["-nologpopup"] = ParseNoLogPopUp;
+  }
+
   void CommandLine::AddParameter(const std::string& arg, const ParseFunc& function)
   {
     CommandLine::Get().s_CommandLineArgsToFuncMap[arg] = function;
@@ -29,10 +37,6 @@ namespace sage
   void CommandLine::ParseArguments(int argc, char* argv[])
   {
     auto& commandMap = Get().s_CommandLineArgsToFuncMap;
-    commandMap["-nologserialize"] = ParseNoLogSerialize;
-    commandMap["-nologprint"] = ParseNoLogPrint;
-    commandMap["-nologpopup"] = ParseNoLogPopUp;
-
     for (int i = 1; i < argc; ++i)
     {
       auto it = commandMap.find(argv[i]);

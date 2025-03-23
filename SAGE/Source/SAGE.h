@@ -4,3 +4,4 @@
 #include "Core/Debug.h"
 
 #include "Engine/CommandLine.h"
+#include "Engine/FileSystem.h"
