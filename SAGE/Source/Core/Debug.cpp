@@ -12,6 +12,9 @@
 
 namespace sage
 {
+  static bool s_DoSerialize = true;
+  static bool s_DoPrint = true;
+  static bool s_DoPopUp = true;
 #if defined(PLATFORM_WINDOWS)
   static HANDLE s_ConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif
@@ -38,7 +41,7 @@ namespace sage
     static OnDestructWrapper& Get() { static OnDestructWrapper instance; instance.s_Used = true; return instance; }
 
     OnDestructWrapper()
-      : s_LogFileStream(SERIALIZE_LOG_FILENAME, std::ios::app), s_Used(false) {}
+      : s_Used(false) {}
     OnDestructWrapper(const OnDestructWrapper&) = delete;
     OnDestructWrapper& operator=(const OnDestructWrapper&) = delete;
     OnDestructWrapper(OnDestructWrapper&&) = delete;
@@ -49,8 +52,26 @@ namespace sage
     bool s_Used;
   };
 
+  void DoSerialize(bool value)
+  {
+    s_DoSerialize = value;
+  }
+
+  void DoPrint(bool value)
+  {
+    s_DoPrint = value;
+  }
+
+  void DoPopUp(bool value)
+  {
+    s_DoPopUp = value;
+  }
+
   void ConsolePrint(const std::string& time, const std::string& message, LogLevel level)
   {
+    if (!s_DoPrint) 
+      return;
+
     std::string finalMessage;
 #if !defined(PLATFORM_WINDOWS)
     switch (level)
@@ -117,6 +138,12 @@ namespace sage
 
   void SerializeLog(const std::string& time, const std::string& file, const std::string& line, LogLevel level, const std::string& message, bool writeEnd)
   {
+    if (!s_DoSerialize)
+      return;
+
+    if (!OnDestructWrapper::GetLogFile().is_open())
+      OnDestructWrapper::GetLogFile().open(SERIALIZE_LOG_FILENAME, std::ios::app);
+
     if (!OnDestructWrapper::GetLogFile().is_open())
       return;
 
@@ -248,6 +275,8 @@ namespace sage
 
   void RuntimePopUp(const std::string& message)
   {
+    if (!s_DoPopUp)
+      return;
 #if defined(PLATFORM_WINDOWS)
     MessageBoxA(NULL, message.c_str(), "Error", MB_OK | MB_ICONERROR);
 #elif (PLATFORM_APPLE)

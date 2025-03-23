@@ -20,6 +20,9 @@ namespace sage
     Info, Warn, Error, Assert
   };
 
+  void DoSerialize(bool value);
+  void DoPrint(bool value);
+  void DoPopUp(bool value);
   void ConsolePrint(const std::string& time, const std::string& message, LogLevel level);
   void SerializeLog(const std::string& time, const std::string& file, const std::string& line, LogLevel level, const std::string& message, bool writeEnd = false);
   void DeserializeLog(const std::filesystem::path& filepath);
