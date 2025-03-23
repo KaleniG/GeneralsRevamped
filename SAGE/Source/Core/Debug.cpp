@@ -124,6 +124,13 @@ namespace sage
     {
         {"time", time},
         {"file", file},
+        {"pid", 
+#if defined(PLATFORM_WINDOWS)
+        GetCurrentProcessId()
+#else
+        getpid()
+#endif
+        },
         {"line", line},
         {"level", static_cast<int32_t>(level)},
         {"message", message}
@@ -195,10 +202,12 @@ namespace sage
         }
 #endif
         std::string time = logEntry["time"];
+        std::string pid = std::to_string(logEntry["pid"].get<int32_t>());
         std::string file = logEntry["file"];
         std::string line = logEntry["line"];
         finalMessage.append("[" + time + "]");
-        finalMessage.append("[" + file + "]");
+        finalMessage.append("[PID:" + pid + "]");
+        finalMessage.append("[File:" + file + "]");
         finalMessage.append("[Line:" + line + "]");
         switch (level)
         {
@@ -232,6 +241,7 @@ namespace sage
       catch (const std::exception& e)
       {
         SAGE_ERROR("[SYSTEM] Failed to parse json '{}': {}", filepath.string(), e.what());
+        return;
       }
     }
   }

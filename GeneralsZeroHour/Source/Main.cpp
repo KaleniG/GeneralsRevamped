@@ -1,19 +1,23 @@
 #include <SAGE.h>
 
+#include <iostream>
+
 #include "InstanceLocking.h"
 
 namespace genzh
 {
-  void ParseLockInstance()
+  void ParseNoLockInstance()
   {
-    if (LockInstanceAndCheck(L"GeneralsZeroHour.lock") == false)
-      SAGE_ERROR("Failed to lock the application instance");
+    LockInstance(false);
   }
 
   void main(int argc, char* argv[])
   {
-    sage::CommandLine::AddArgumentBinding("-lockinstance", ParseLockInstance);
+    sage::CommandLine::AddParameter("-nolockinstance", ParseNoLockInstance);
+    sage::CommandLine::ParseArguments(argc, argv);
 
+    if (LockInstanceAndCheck(L"GeneralsZeroHour.lock") == false)
+      return;
 
     UnlockInstance();
   }

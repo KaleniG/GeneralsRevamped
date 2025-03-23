@@ -10,9 +10,8 @@ namespace sage
   class CommandLine
   {
   public:
-    static void AddArgumentBinding(const std::string& arg, const ParseFunc& function);
+    static void AddParameter(const std::string& arg, const ParseFunc& function);
     static void ParseArguments(int argc, char* argv[]);
-
   private:
     static CommandLine& Get() { static CommandLine instance; return instance; }
 

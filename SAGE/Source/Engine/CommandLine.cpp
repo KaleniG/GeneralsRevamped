@@ -4,7 +4,7 @@
 
 namespace sage
 {
-  void CommandLine::AddArgumentBinding(const std::string& arg, const ParseFunc& function)
+  void CommandLine::AddParameter(const std::string& arg, const ParseFunc& function)
   {
     CommandLine::Get().s_CommandLineArgsToFuncMap[arg] = function;
   }
