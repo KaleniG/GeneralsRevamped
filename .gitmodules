@@ -1,3 +1,6 @@
-[submodule "SAGE/Deps/json"]
-	path = SAGE/Deps/json
+[submodule "Deps/glm"]
+	path = Deps/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "Deps/json"]
+	path = Deps/json
 	url = https://github.com/nlohmann/json.git

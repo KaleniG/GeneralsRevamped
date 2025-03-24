@@ -2,8 +2,9 @@ WORKSPACEDIR = _WORKING_DIR
 OUTPUTDIR = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
-IncludeDir["SAGE"] = "../SAGE/Source"
-IncludeDir["json"] = "Deps/json/single_include"
+IncludeDir["SAGE"]  = "../SAGE/Source"
+IncludeDir["json"]  = "../Deps/json/single_include"
+IncludeDir["glm"]   = "../Deps/glm"
 
 workspace "GeneralsRevamped"
   startproject "GeneralsZeroHour"
