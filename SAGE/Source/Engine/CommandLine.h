@@ -6,7 +6,7 @@
 
 namespace sage
 {
-  using ParseFunc = std::function<void()>;
+  using ParseFunc = std::function<void(int& argc, char* argv[])>;
   class CommandLine
   {
   public:

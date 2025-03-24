@@ -4,18 +4,18 @@
 
 namespace sage
 {
-  void ParseNoLogSerialize()
+  void ParseNoLogSerialize(int& argc, char* argv[])
   {
     DoSerialize(false);
     SAGE_WARN("[SYSTEM] Log serialization is disabled");
   }
 
-  void ParseNoLogPrint()
+  void ParseNoLogPrint(int& argc, char* argv[])
   {
     DoPrint(false);
   }
 
-  void ParseNoLogPopUp()
+  void ParseNoLogPopUp(int& argc, char* argv[])
   {
     DoPopUp(false);
     SAGE_WARN("[SYSTEM] Log PopUp is disabled");
@@ -41,7 +41,7 @@ namespace sage
     {
       auto it = commandMap.find(argv[i]);
       if (it != commandMap.end())
-        it->second();
+        it->second(i, argv);
       else
         SAGE_ERROR("[USER] Invalid command-line parameter was added: '{}'", argv[i]);
     }

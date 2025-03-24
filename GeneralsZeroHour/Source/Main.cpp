@@ -6,7 +6,7 @@
 
 namespace genzh
 {
-  void ParseNoLockInstance()
+  void ParseNoLockInstance(int& argc, char* argv[])
   {
     LockInstance(false);
   }
