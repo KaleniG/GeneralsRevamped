@@ -4,18 +4,18 @@
 
 namespace sage
 {
-  void ParseNoLogSerialize(int& argc, char* argv[])
+  inline void ParseNoLogSerialize(int& argc, char* argv[])
   {
     DoSerialize(false);
     SAGE_WARN("[SYSTEM] Log serialization is disabled");
   }
 
-  void ParseNoLogPrint(int& argc, char* argv[])
+  inline void ParseNoLogPrint(int& argc, char* argv[])
   {
     DoPrint(false);
   }
 
-  void ParseNoLogPopUp(int& argc, char* argv[])
+  inline void ParseNoLogPopUp(int& argc, char* argv[])
   {
     DoPopUp(false);
     SAGE_WARN("[SYSTEM] Log PopUp is disabled");

@@ -5,7 +5,7 @@
 
 #include <SAGE.h>
 
-#include "InstanceLocking.h"
+#include "Core/InstanceLocking.h"
 
 #ifdef PLATFORM_WINDOWS
 #include <windows.h>
