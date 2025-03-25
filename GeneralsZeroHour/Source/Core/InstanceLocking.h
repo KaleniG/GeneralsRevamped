@@ -4,8 +4,11 @@
 
 namespace genzh
 {
-  void LockInstance(bool value);
-  bool LockInstanceAndCheck(const std::wstring& id);
-  void FocusExistingInstanceWindow(const std::wstring& name);
-  void UnlockInstance();
+  namespace InstanceLock
+  {
+    void Enable(bool value);
+    bool Init(const std::wstring& id);
+    void FocusExistingInstanceWindow(const std::wstring& name);
+    void End();
+  }
 }

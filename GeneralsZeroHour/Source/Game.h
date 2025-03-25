@@ -11,7 +11,7 @@ namespace genzh
   public:
     static void Init(int argc, char* argv[]);
     static void Run();
-
+    static void End();
   private:
     static Timestep CalculateTimestep();
 

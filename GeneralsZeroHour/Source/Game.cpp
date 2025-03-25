@@ -10,7 +10,7 @@ namespace genzh
 {
   inline void ParseNoLockInstance(int& argc, char* argv[])
   {
-    LockInstance(false);
+    InstanceLock::Enable(false);
   }
 
   void Game::Init(int argc, char* argv[])
@@ -19,12 +19,11 @@ namespace genzh
     sage::CommandLine::AddParameter("-nolockinstance", ParseNoLockInstance);
     sage::CommandLine::ParseArguments(argc, argv);
 
-    if (LockInstanceAndCheck(L"GeneralsZeroHour.lock") == false)
+    if (InstanceLock::Init(L"GeneralsZeroHour.lock") == false)
       return;
 
     sage::FileSystem::Init(std::filesystem::path(argv[0]).parent_path());
     std::cin.get();
-    UnlockInstance();
   }
 
   void Game::Run()
@@ -33,6 +32,11 @@ namespace genzh
     {
       Timestep timestep = Game::CalculateTimestep();
     }
+  }
+
+  void Game::End()
+  {
+    InstanceLock::End();
   }
 
   Timestep Game::CalculateTimestep()
@@ -49,4 +53,5 @@ int main(int argc, char* argv[])
 {
   genzh::Game::Init(argc, argv);
   genzh::Game::Run();
+  genzh::Game::End();
 }
