@@ -24,6 +24,9 @@ namespace sage
     CommandLine& operator=(CommandLine&&) = delete;
 
   private:
-    std::unordered_map<std::string, ParseFunc> s_CommandLineArgsToFuncMap;
+    using CommandLineArgToFuncMap = std::unordered_map<std::string, ParseFunc>;
+
+  private:
+    CommandLineArgToFuncMap s_CommandLineArgsToFuncMap;
   };
 }

@@ -86,8 +86,6 @@ namespace sage
     std::size_t operator()(const ArchivedFileInfo& file) const { return std::hash<std::string>{}(file.Filepath.string()); }
   };
 
-  using ArchivedFileInfoList = std::unordered_set<ArchivedFileInfo, ArchivedFileInfo>;
-
   class ArchiveFile
   {
   public:
@@ -103,10 +101,10 @@ namespace sage
     operator bool() const;
 
   private:
+    using ArchivedFileInfoList = std::unordered_set<ArchivedFileInfo, ArchivedFileInfo>;
+
+  private:
     DiskFile m_ArchiveFile;
     ArchivedFileInfoList m_FileInfoList;
   };
-
-  using FilenameList = std::unordered_set<std::string>;
-  using ArchiveList = std::vector<ArchiveFile>;
 }

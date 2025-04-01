@@ -6,6 +6,8 @@
 
 namespace sage
 {
+  using FilenameList = std::unordered_set<std::string>;
+
   class LocalFileSystem
   {
   public:
@@ -40,10 +42,12 @@ namespace sage
     ArchiveFileSystem& operator=(ArchiveFileSystem&&) = delete;
 
   private:
+    using ArchiveList = std::vector<ArchiveFile>;
+
+  private:
     ArchiveList s_ArchiveList;
   };
 
-  using FileType = std::variant<DiskFile, RAMFile>;
   class FileSystem
   {
   public:

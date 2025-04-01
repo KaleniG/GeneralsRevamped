@@ -110,13 +110,13 @@ namespace sage
     switch (level)
     {
     case LogLevel::Info:
-      finalMessage.append("[INFO]");
+      finalMessage.append("[INFO]  ");
       break;
     case LogLevel::Warn:
-      finalMessage.append("[WARN]");
+      finalMessage.append("[WARN]  ");
       break;
     case LogLevel::Error:
-      finalMessage.append("[ERROR]");
+      finalMessage.append("[ERROR] ");
       break;
     case LogLevel::Assert:
       finalMessage.append("[ASSERT]");
