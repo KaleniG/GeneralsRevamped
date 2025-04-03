@@ -33,6 +33,8 @@ namespace sage
     template <typename T, typename... Associations>
     static void AddAssociation(ParseMethod method, T* reference, const std::string& head, Associations... association)
     {
+      SAGE_ASSERT(method != nullptr, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+
       std::vector<std::string> associations;
       (associations.push_back(std::string(association)), ...);
 
@@ -52,12 +54,30 @@ namespace sage
       }
 
       const std::string& lastAssoc = associations.back();
-      currentSubAssoc->ParseCouple = std::make_unique<ParseCouple>(method, (void*)reference, sizeof(*reference));
+      if (currentSubAssoc->ParseCouple)
+      {
+        std::string fullAssoc;
+        fullAssoc.append("|" + head + "|");
+        for (const std::string& assoc : associations)
+          fullAssoc.append(assoc + "|");
+        SAGE_WARN("[SYSTEM] Overriding the ParseCouple of the association '{}'", fullAssoc);
+        currentSubAssoc->ParseCouple.reset();
+      }
+      currentSubAssoc->ParseCouple = std::make_unique<ParseCouple>(method, (reference) ? (void*)reference : nullptr, (reference) ? sizeof(*reference) : 0);
     }
     template <typename T>
     static void AddAssociation(ParseMethod method, T* reference, const std::string& head)
     {
-      INIParser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<ParseCouple>(method, (void*)reference, sizeof(*reference));
+      SAGE_ASSERT(method != nullptr, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+
+      if (INIParser::Get().s_AssociationMap[head].ParseCouple)
+      {
+        std::string fullAssoc;
+        fullAssoc.append("|" + head + "|");
+        SAGE_WARN("[SYSTEM] Overriding the ParseCouple of the association '{}'", fullAssoc);
+        INIParser::Get().s_AssociationMap[head].ParseCouple.reset();
+      }
+      INIParser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<ParseCouple>(method, (reference) ? (void*)reference : nullptr, (reference) ? sizeof(*reference) : 0);
     }
     template <typename... Associations>
     static void DeleteAssociation(Associations... association)

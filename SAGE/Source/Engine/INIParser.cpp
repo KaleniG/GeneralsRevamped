@@ -190,7 +190,8 @@ namespace sage
         {
           ParseCouple& couple = *(*currentHead)[firstToken].ParseCouple.get();
           void* resultVal = couple.Method(restOfString);
-          std::memcpy(couple.Reference, resultVal, couple.ReferenceSize);
+          if (couple.Reference)
+            std::memcpy(couple.Reference, resultVal, couple.ReferenceSize);
           delete resultVal;
         }
         if ((*currentHead)[firstToken].SubAssociation)
