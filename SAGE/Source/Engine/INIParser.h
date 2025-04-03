@@ -15,6 +15,8 @@ namespace sage
     void* ParseNothing(const std::string& val);
     void* ParseBool(const std::string& val);
     void* ParseFloat(const std::string& val);
+    void* ParseFloatAngle(const std::string& val);
+    void* ParseFloatPercent(const std::string& val);
     void* ParseInt64(const std::string& val);
     void* ParseInt32(const std::string& val);
     void* ParseInt16(const std::string& val);
@@ -24,6 +26,7 @@ namespace sage
     void* ParseUInt16(const std::string& val);
     void* ParseUInt8(const std::string& val);
     void* ParseString(const std::string& val);
+    void* ParseQuotedString(const std::string& val);
   }
   
   using ParseMethod = std::function<void*(const std::string&)>;
@@ -99,7 +102,7 @@ namespace sage
       INIParser::ShrinkToFit(INIParser::Get().s_AssociationMap);
     }
     static void ResetAssociations();
-    static void ParseFile(const std::filesystem::path& filepath);
+    static void ParseFile(const std::filesystem::path& filepath, bool ignore_unknown_headers = false);
 
     static void PrintAssociations();
 

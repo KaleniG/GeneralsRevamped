@@ -1,5 +1,7 @@
 #include <pch.h>
 
+#include <glm/glm.hpp>
+
 #include "Engine/INIParser.h"
 #include "Engine/FileSystem.h"
 
@@ -38,6 +40,29 @@ namespace sage
 
       float* floatValue = new float(std::stof(floatToken));
       return (void*)floatValue;
+    }
+
+    void* ParseFloatAngle(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float angle"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string floatAngleToken = val.substr(spacePos);
+      floatAngleToken = floatAngleToken.substr(0, floatAngleToken.find_first_of(" =\n\r\t"));
+
+      float* floatAngleValue = new float(glm::radians(std::stof(floatAngleToken)));
+      return (void*)floatAngleValue;
+    }
+
+    void* ParseFloatPercent(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float percentage"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string floatPercentToken = val.substr(spacePos);
+      SAGE_ASSERT(floatPercentToken.find_first_of("%") != std::string::npos, "[SYSTEM] Trying to parse a percentage value but the '%' character is missing");
+      floatPercentToken = floatPercentToken.substr(0, floatPercentToken.find_first_of("%")); // may corrupt something, idk
+
+      float* floatPercentValue = new float(std::stof(floatPercentToken));
+      return (void*)floatPercentValue;
     }
 
     void* ParseInt64(const std::string& val)
@@ -142,6 +167,17 @@ namespace sage
       std::string* stringValue = new std::string(stringToken);
       return (void*)stringValue;
     }
+
+    void* ParseQuotedString(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t\"");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a string"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string stringToken = val.substr(spacePos);
+      stringToken = stringToken.substr(0, stringToken.find_first_of(" =\n\r\t\""));
+
+      std::string* stringValue = new std::string(stringToken);
+      return (void*)stringValue;
+    }
   }
 
   void INIParser::ResetAssociations()
@@ -149,7 +185,7 @@ namespace sage
     INIParser::Get().s_AssociationMap.clear();
   }
 
-  void INIParser::ParseFile(const std::filesystem::path& filepath)
+  void INIParser::ParseFile(const std::filesystem::path& filepath, bool ignore_unknown_headers)
   {
     RAMFile file = FileSystem::OpenRAMFile(filepath);
     std::vector<std::string> headTokens;
@@ -167,6 +203,9 @@ namespace sage
         if (pos != std::string::npos)
           line.erase(pos);
       }
+
+      if (std::strcmp(line.c_str(), "") == 0)
+        continue;
 
       size_t spacePos = line.find_first_not_of(" =\n\r\t");
       if (spacePos == std::string::npos)
@@ -189,7 +228,7 @@ namespace sage
       if (restOfString.find_first_not_of(" =\n\r\t") == std::string::npos || restOfString.empty())
         restOfString.clear();
 
-      SAGE_ASSERT(currentHead->find(firstToken) != currentHead->end(), "[SYSTEM] Read and unknown header '{}' from file '{}', position '{}'", firstToken, file.GetFilepath().string(), file.GetPosition());
+      SAGE_ASSERT(currentHead->find(firstToken) != currentHead->end() || ignore_unknown_headers, "[SYSTEM] Read and unknown header '{}' from file '{}', position '{}'", firstToken, file.GetFilepath().string(), file.GetPosition());
       if (currentHead->find(firstToken) != currentHead->end())
       {
         if ((*currentHead)[firstToken].ParseCouple)
