@@ -10,6 +10,21 @@
 
 namespace sage
 {
+  namespace INI
+  {
+    void* ParseBool(const std::string& val);
+    void* ParseFloat(const std::string& val);
+    void* ParseInt64(const std::string& val);
+    void* ParseInt32(const std::string& val);
+    void* ParseInt16(const std::string& val);
+    void* ParseInt8(const std::string& val);
+    void* ParseUInt64(const std::string& val);
+    void* ParseUInt32(const std::string& val);
+    void* ParseUInt16(const std::string& val);
+    void* ParseUInt8(const std::string& val);
+    void* ParseString(const std::string& val);
+  }
+  
   using ParseMethod = std::function<void*(const std::string&)>;
 
   class INIParser
