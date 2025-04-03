@@ -10,7 +10,7 @@ namespace sage
     void* ParseBool(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a bool"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a bool"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string boolToken = val.substr(spacePos);
       boolToken = boolToken.substr(0, boolToken.find_first_of(" =\n\r\t"));
 
@@ -26,7 +26,7 @@ namespace sage
     void* ParseFloat(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string floatToken = val.substr(spacePos);
       floatToken = floatToken.substr(0, floatToken.find_first_of(" =\n\r\t"));
 
@@ -37,7 +37,7 @@ namespace sage
     void* ParseInt64(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a signed 64 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string int64Token = val.substr(spacePos);
       int64Token = int64Token.substr(0, int64Token.find_first_of(" =\n\r\t"));
 
@@ -48,7 +48,7 @@ namespace sage
     void* ParseInt32(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a signed 32 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string int32Token = val.substr(spacePos);
       int32Token = int32Token.substr(0, int32Token.find_first_of(" =\n\r\t"));
 
@@ -59,7 +59,7 @@ namespace sage
     void* ParseInt16(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a signed 16 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string int16Token = val.substr(spacePos);
       int16Token = int16Token.substr(0, int16Token.find_first_of(" =\n\r\t"));
 
@@ -70,7 +70,7 @@ namespace sage
     void* ParseInt8(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a signed 8 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string int8Token = val.substr(spacePos);
       int8Token = int8Token.substr(0, int8Token.find_first_of(" =\n\r\t"));
 
@@ -81,7 +81,7 @@ namespace sage
     void* ParseUInt64(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing an unsigned 64 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string uint64Token = val.substr(spacePos);
       uint64Token = uint64Token.substr(0, uint64Token.find_first_of(" =\n\r\t"));
       SAGE_ASSERT(uint64Token[0] != '-', "[SYSTEM] Encountered a negative value while parsing to an unsigned one");
@@ -93,7 +93,7 @@ namespace sage
     void* ParseUInt32(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing an unsigned 32 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string uint32Token = val.substr(spacePos);
       uint32Token = uint32Token.substr(0, uint32Token.find_first_of(" =\n\r\t"));
       SAGE_ASSERT(uint32Token[0] != '-', "[SYSTEM] Encountered a negative value while parsing to an unsigned one");
@@ -105,7 +105,7 @@ namespace sage
     void* ParseUInt16(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing an unsigned 16 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string uint16Token = val.substr(spacePos);
       uint16Token = uint16Token.substr(0, uint16Token.find_first_of(" =\n\r\t"));
       SAGE_ASSERT(uint16Token[0] != '-', "[SYSTEM] Encountered a negative value while parsing to an unsigned one");
@@ -117,7 +117,7 @@ namespace sage
     void* ParseUInt8(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing an unsigned 8 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string uint8Token = val.substr(spacePos);
       uint8Token = uint8Token.substr(0, uint8Token.find_first_of(" =\n\r\t"));
       SAGE_ASSERT(uint8Token[0] != '-', "[SYSTEM] Encountered a negative value while parsing to an unsigned one");
@@ -129,7 +129,7 @@ namespace sage
     void* ParseString(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
-      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no bool dound 'spacePo's has an extremely high value
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a string"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
       std::string stringToken = val.substr(spacePos);
       stringToken = stringToken.substr(0, stringToken.find_first_of(" =\n\r\t"));
 
