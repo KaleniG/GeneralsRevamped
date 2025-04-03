@@ -52,7 +52,6 @@ namespace sage
   {
     FilenameList list = LocalFileSystem::GetFilenameListInDirectory(".", ".big", true);
 
-    SAGE_INFO("[SYSTEM] Files in directory: ");
     for (auto it = list.begin(); it != list.end(); it++)
       ArchiveFileSystem::Get().s_ArchiveList.push_back(ArchiveFile(it->c_str()));
   }
@@ -93,5 +92,4 @@ namespace sage
       return file;
     }
   }
-
 }
