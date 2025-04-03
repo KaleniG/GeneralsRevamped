@@ -12,6 +12,7 @@ namespace sage
 {
   namespace INI
   {
+    void* ParseNothing(const std::string& val);
     void* ParseBool(const std::string& val);
     void* ParseFloat(const std::string& val);
     void* ParseInt64(const std::string& val);

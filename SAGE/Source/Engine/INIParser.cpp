@@ -7,6 +7,12 @@ namespace sage
 {
   namespace INI
   {
+    void* ParseNothing(const std::string& val)
+    {
+      SAGE_WARN("[SYSTEM] Parsing nothing, when doing so remember to not set the Reference. The parsable: '{}'", val);
+      return nullptr;
+    }
+
     void* ParseBool(const std::string& val)
     {
       size_t spacePos = val.find_first_not_of(" =\r\n\t");
