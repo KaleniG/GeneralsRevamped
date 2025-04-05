@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include "Core/InstanceLocking.h"
+#include "Systems/GameData.h"
 #include "Game.h"
 
 namespace genzh
@@ -23,6 +24,13 @@ namespace genzh
       return;
 
     sage::FileSystem::Init(std::filesystem::path(argv[0]).parent_path());
+    
+    GameData::Init("Data/INI/Default/GameData.ini", "Data/INI/GameData.ini"
+#if defined(CONFIG_DEBUG) || defined(CONFIG_RELEASE)
+      , "Data/INI/GameDataDebug.ini"
+#endif
+    );
+
     std::cin.get();
   }
 

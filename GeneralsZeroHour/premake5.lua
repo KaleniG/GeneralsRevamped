@@ -16,7 +16,8 @@ project "GeneralsZeroHour"
   includedirs
   {
     "Source",
-    "%{IncludeDir.SAGE}"
+    "%{IncludeDir.SAGE}",
+    "%{IncludeDir.glm}"
   }
 
   links
