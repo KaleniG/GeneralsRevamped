@@ -26,6 +26,7 @@ namespace sage
 #elif defined(CONFIG_FINAL)
 #define SERIALIZE_LOG_FILENAME "Final - " __DATE__ ".log"
 #endif
+#define SERIALIZE_LOG_DIRECTORY "Logs"
 
   class OnDestructWrapper
   {
@@ -141,8 +142,11 @@ namespace sage
     if (!s_DoSerialize)
       return;
 
+    if (!std::filesystem::exists(SERIALIZE_LOG_DIRECTORY))
+      std::filesystem::create_directory(SERIALIZE_LOG_DIRECTORY);
+
     if (!OnDestructWrapper::GetLogFile().is_open())
-      OnDestructWrapper::GetLogFile().open(SERIALIZE_LOG_FILENAME, std::ios::app);
+      OnDestructWrapper::GetLogFile().open(SERIALIZE_LOG_DIRECTORY "/" SERIALIZE_LOG_FILENAME, std::ios::app);
 
     if (!OnDestructWrapper::GetLogFile().is_open())
       return;
@@ -170,6 +174,7 @@ namespace sage
 
   void DeserializeLog(const std::filesystem::path& filepath)
   {
+    SAGE_ASSERT(std::filesystem::exists(filepath), "[SYSTEM] Trying to deserialize a log file that doesn't exist. Unknown filename: '{}'", filepath.string());
     std::ifstream logFile(filepath);
     if (!logFile.is_open())
       return;
