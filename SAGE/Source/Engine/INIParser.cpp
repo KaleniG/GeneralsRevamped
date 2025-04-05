@@ -61,8 +61,114 @@ namespace sage
       SAGE_ASSERT(floatPercentToken.find_first_of("%") != std::string::npos, "[SYSTEM] Trying to parse a percentage value but the '%' character is missing");
       floatPercentToken = floatPercentToken.substr(0, floatPercentToken.find_first_of("%")); // may corrupt something, idk
 
-      float* floatPercentValue = new float(std::stof(floatPercentToken));
+      float* floatPercentValue = new float(std::stof(floatPercentToken) / 100.0f);
       return (void*)floatPercentValue;
+    }
+
+    void* ParseVec4Color(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a color vector of three floats"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string colorToken = val.substr(spacePos);
+
+      glm::vec4* vec4ColorValue = new glm::vec4();
+
+      SAGE_ASSERT(colorToken.find("R") != std::string::npos, "[SYSTEM] Couldn't find the 'R' color identifier while parsing a color vector of three floats");
+      std::string rToken = colorToken.substr(colorToken.find("R:") + 2, colorToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      int32_t rColor = std::stoi(rToken);
+      SAGE_ASSERT(rColor >= 0 && rColor <= 255, "[SYSTEM] The 'R' value of the color is out of bounds 0-255. Invalid value: '{}'", rColor);
+      vec4ColorValue->r = static_cast<float>(rColor) / 255.0f;
+
+      SAGE_ASSERT(colorToken.find("G") != std::string::npos, "[SYSTEM] Couldn't find the 'G' color identifier while parsing a color vector of three floats");
+      std::string gToken = colorToken.substr(colorToken.find("G:") + 2, colorToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      int32_t gColor = std::stoi(gToken);
+      SAGE_ASSERT(gColor >= 0 && gColor <= 255, "[SYSTEM] The 'G' value of the color is out of bounds 0-255. Invalid value: '{}'", rColor);
+      vec4ColorValue->g = static_cast<float>(gColor) / 255.0f;
+
+      SAGE_ASSERT(colorToken.find("B") != std::string::npos, "[SYSTEM] Couldn't find the 'B' color identifier while parsing a color vector of three floats");
+      std::string bToken = colorToken.substr(colorToken.find("B:") + 2, colorToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      int32_t bColor = std::stoi(bToken);
+      SAGE_ASSERT(bColor >= 0 && bColor <= 255, "[SYSTEM] The 'B' value of the color is out of bounds 0-255. Invalid value: '{}'", rColor);
+      vec4ColorValue->b = static_cast<float>(bColor) / 255.0f;
+
+      SAGE_ASSERT(colorToken.find("A") != std::string::npos, "[SYSTEM] Couldn't find the 'A' color identifier while parsing a color vector of three floats");
+      std::string aToken = colorToken.substr(colorToken.find("A:") + 2, colorToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      int32_t aColor = std::stoi(aToken);
+      SAGE_ASSERT(aColor >= 0 && aColor <= 255, "[SYSTEM] The 'A' value of the color is out of bounds 0-255. Invalid value: '{}'", rColor);
+      vec4ColorValue->a = static_cast<float>(aColor) / 255.0f;
+
+      return (void*)vec4ColorValue;
+    }
+
+    void* ParseVec3Coord(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a coordinate vector of three floats"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string coordsToken = val.substr(spacePos);
+
+      glm::vec3* vec3CoordsValue = new glm::vec3();
+
+      SAGE_ASSERT(coordsToken.find("X") != std::string::npos, "[SYSTEM] Couldn't find the 'X' coordinate identifier while parsing a coordinate vector of three floats");
+      std::string xToken = coordsToken.substr(coordsToken.find("X:") + 2, coordsToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      vec3CoordsValue->x = std::stof(xToken);
+
+      SAGE_ASSERT(coordsToken.find("Y") != std::string::npos, "[SYSTEM] Couldn't find the 'Y' coordinate identifier while parsing a coordinate vector of three floats");
+      std::string yToken = coordsToken.substr(coordsToken.find("Y:") + 2, coordsToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      vec3CoordsValue->y = std::stof(yToken);
+
+      SAGE_ASSERT(coordsToken.find("Z") != std::string::npos, "[SYSTEM] Couldn't find the 'Z' coordinate identifier while parsing a coordinate vector of three floats");
+      std::string zToken = coordsToken.substr(coordsToken.find("Z:") + 2, coordsToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      vec3CoordsValue->z = std::stof(zToken);
+
+      return (void*)vec3CoordsValue;
+    }
+
+    void* ParseVec3Color(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a color vector of three floats"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string colorToken = val.substr(spacePos);
+
+      glm::vec3* vec3ColorValue = new glm::vec3();
+
+      SAGE_ASSERT(colorToken.find("R") != std::string::npos, "[SYSTEM] Couldn't find the 'R' color identifier while parsing a color vector of three floats");
+      std::string rToken = colorToken.substr(colorToken.find("R:") + 2, colorToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      int32_t rColor = std::stoi(rToken);
+      SAGE_ASSERT(rColor >= 0 && rColor <= 255, "[SYSTEM] The 'R' value of the color is out of bounds 0-255. Invalid value: '{}'", rColor);
+      vec3ColorValue->r = static_cast<float>(rColor) / 255.0f;
+
+      SAGE_ASSERT(colorToken.find("G") != std::string::npos, "[SYSTEM] Couldn't find the 'G' color identifier while parsing a color vector of three floats");
+      std::string gToken = colorToken.substr(colorToken.find("G:") + 2, colorToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      int32_t gColor = std::stoi(gToken);
+      SAGE_ASSERT(gColor >= 0 && gColor <= 255, "[SYSTEM] The 'G' value of the color is out of bounds 0-255. Invalid value: '{}'", rColor);
+      vec3ColorValue->g = static_cast<float>(gColor) / 255.0f;
+
+      SAGE_ASSERT(colorToken.find("B") != std::string::npos, "[SYSTEM] Couldn't find the 'B' color identifier while parsing a color vector of three floats");
+      std::string bToken = colorToken.substr(colorToken.find("B:") + 2, colorToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      int32_t bColor = std::stoi(bToken);
+      SAGE_ASSERT(bColor >= 0 && bColor <= 255, "[SYSTEM] The 'B' value of the color is out of bounds 0-255. Invalid value: '{}'", rColor);
+      vec3ColorValue->b = static_cast<float>(bColor) / 255.0f;
+
+      return (void*)vec3ColorValue;
+    }
+
+    void* ParseVec2Coord(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a coordinate vector of three floats"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string coordsToken = val.substr(spacePos);
+
+      glm::vec2* coordVec2Value = new glm::vec2();
+
+      SAGE_ASSERT(coordsToken.find("X") != std::string::npos, "[SYSTEM] Couldn't find the 'X' coordinate identifier while parsing a coordinate vector of three floats");
+      std::string xToken = coordsToken.substr(coordsToken.find("X:") + 2, coordsToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      coordVec2Value->x = std::stof(xToken);
+
+      SAGE_ASSERT(coordsToken.find("Y") != std::string::npos, "[SYSTEM] Couldn't find the 'Y' coordinate identifier while parsing a coordinate vector of three floats");
+      std::string yToken = coordsToken.substr(coordsToken.find("Y:") + 2, coordsToken.find_first_of(" \r\n\t")); // oh my god how i hate this, hate the .ini parsing
+      coordVec2Value->y = std::stof(yToken);
+
+      return (void*)coordVec2Value;
     }
 
     void* ParseInt64(const std::string& val)
@@ -237,7 +343,8 @@ namespace sage
           void* resultVal = couple.Method(restOfString);
           if (couple.Reference)
             std::memcpy(couple.Reference, resultVal, couple.ReferenceSize);
-          delete resultVal;
+          if (resultVal)
+            delete resultVal;
         }
         if ((*currentHead)[firstToken].SubAssociation)
         {

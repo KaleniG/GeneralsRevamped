@@ -17,6 +17,10 @@ namespace sage
     void* ParseFloat(const std::string& val);
     void* ParseFloatAngle(const std::string& val);
     void* ParseFloatPercent(const std::string& val);
+    void* ParseVec4Color(const std::string& val);
+    void* ParseVec3Coord(const std::string& val);
+    void* ParseVec3Color(const std::string& val);
+    void* ParseVec2Coord(const std::string& val);
     void* ParseInt64(const std::string& val);
     void* ParseInt32(const std::string& val);
     void* ParseInt16(const std::string& val);
@@ -35,9 +39,10 @@ namespace sage
   {
   public:
     template <typename T, typename... Associations>
-    static void AddAssociation(ParseMethod method, T* reference, const std::string& head, Associations... association)
+    static void AddAssociation(T* reference, ParseMethod method, const std::string& head, Associations... association)
     {
-      SAGE_ASSERT(method != nullptr, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+      SAGE_ASSERT(method, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+      SAGE_ASSERT(reference, "[SYSTEM] Cannot add an association with invalid Reference");
 
       std::vector<std::string> associations;
       (associations.push_back(std::string(association)), ...);
@@ -60,28 +65,85 @@ namespace sage
       const std::string& lastAssoc = associations.back();
       if (currentSubAssoc->ParseCouple)
       {
+#if defined(CONFIG_DEBUG) || defined(CONFIG_RELEASE)
         std::string fullAssoc;
         fullAssoc.append("|" + head + "|");
         for (const std::string& assoc : associations)
           fullAssoc.append(assoc + "|");
         SAGE_WARN("[SYSTEM] Overriding the ParseCouple of the association '{}'", fullAssoc);
+#endif
         currentSubAssoc->ParseCouple.reset();
       }
-      currentSubAssoc->ParseCouple = std::make_unique<ParseCouple>(method, (reference) ? (void*)reference : nullptr, (reference) ? sizeof(*reference) : 0);
+      currentSubAssoc->ParseCouple = std::make_unique<ParseCouple>(method, (void*)reference, sizeof(*reference));
     }
     template <typename T>
-    static void AddAssociation(ParseMethod method, T* reference, const std::string& head)
+    static void AddAssociation(T* reference, ParseMethod method, const std::string& head)
     {
-      SAGE_ASSERT(method != nullptr, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+      SAGE_ASSERT(method, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+      SAGE_ASSERT(reference, "[SYSTEM] Cannot add an association with invalid Reference");
 
       if (INIParser::Get().s_AssociationMap[head].ParseCouple)
       {
+#if defined(CONFIG_DEBUG) || defined(CONFIG_RELEASE)
         std::string fullAssoc;
         fullAssoc.append("|" + head + "|");
         SAGE_WARN("[SYSTEM] Overriding the ParseCouple of the association '{}'", fullAssoc);
+#endif
         INIParser::Get().s_AssociationMap[head].ParseCouple.reset();
       }
-      INIParser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<ParseCouple>(method, (reference) ? (void*)reference : nullptr, (reference) ? sizeof(*reference) : 0);
+      INIParser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<ParseCouple>(method,(void*)reference, sizeof(*reference));
+    }
+    template <typename... Associations>
+    static void AddAssociation(ParseMethod method, const std::string& head, Associations... association)
+    {
+      SAGE_ASSERT(method, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+
+      std::vector<std::string> associations;
+      (associations.push_back(std::string(association)), ...);
+
+      if (!INIParser::Get().s_AssociationMap[head].SubAssociation)
+        INIParser::Get().s_AssociationMap[head].SubAssociation = std::make_unique<AssociationMap>();
+
+      AssocStruct* currentSubAssoc = &INIParser::Get().s_AssociationMap[head];
+
+      for (int32_t i = 0; i < associations.size(); i++)
+      {
+        const std::string& assoc = associations[i];
+
+        if (!currentSubAssoc->SubAssociation)
+          currentSubAssoc->SubAssociation = std::make_unique<AssociationMap>();
+
+        currentSubAssoc = &(*currentSubAssoc->SubAssociation)[assoc];
+      }
+
+      const std::string& lastAssoc = associations.back();
+      if (currentSubAssoc->ParseCouple)
+      {
+#if defined(CONFIG_DEBUG) || defined(CONFIG_RELEASE)
+        std::string fullAssoc;
+        fullAssoc.append("|" + head + "|");
+        for (const std::string& assoc : associations)
+          fullAssoc.append(assoc + "|");
+        SAGE_WARN("[SYSTEM] Overriding the ParseCouple of the association '{}'", fullAssoc);
+#endif
+        currentSubAssoc->ParseCouple.reset();
+      }
+      currentSubAssoc->ParseCouple = std::make_unique<ParseCouple>(method, nullptr, 0);
+    }
+    static void AddAssociation(ParseMethod method, const std::string& head)
+    {
+      SAGE_ASSERT(method, "[SYSTEM] Cannot add an association with invalid ParseMethod");
+
+      if (INIParser::Get().s_AssociationMap[head].ParseCouple)
+      {
+#if defined(CONFIG_DEBUG) || defined(CONFIG_RELEASE)
+        std::string fullAssoc;
+        fullAssoc.append("|" + head + "|");
+        SAGE_WARN("[SYSTEM] Overriding the ParseCouple of the association '{}'", fullAssoc);
+#endif
+        INIParser::Get().s_AssociationMap[head].ParseCouple.reset();
+      }
+      INIParser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<ParseCouple>(method, nullptr, 0);
     }
     template <typename... Associations>
     static void DeleteAssociation(Associations... association)
