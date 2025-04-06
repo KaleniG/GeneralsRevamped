@@ -1,8 +1,11 @@
 #pragma once
 
-#include <string>
+#define USE_LEGACY_DATA_DIRECTORY //Temporary
 
-namespace genzh
+#include <string>
+#include <filesystem>
+
+namespace sage
 {
   namespace InstanceLock
   {
@@ -10,5 +13,10 @@ namespace genzh
     bool Init(const std::wstring& id);
     void FocusExistingInstanceWindow(const std::wstring& name);
     void End();
+  }
+
+  namespace User
+  {
+    std::filesystem::path GetConfigCrossPlatformDirectory(const std::string& directory_name);
   }
 }

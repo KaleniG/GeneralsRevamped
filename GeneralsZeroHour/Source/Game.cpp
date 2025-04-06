@@ -3,24 +3,17 @@
 #include <iostream>
 #include <chrono>
 
-#include "Core/InstanceLocking.h"
 #include "Systems/GameData.h"
 #include "Game.h"
 
 namespace genzh
 {
-  inline void ParseNoLockInstance(int& argc, char* argv[])
-  {
-    InstanceLock::Enable(false);
-  }
-
   void Game::Init(int argc, char* argv[])
   {
     sage::CommandLine::Init();
-    sage::CommandLine::AddParameter("-nolockinstance", ParseNoLockInstance);
     sage::CommandLine::ParseArguments(argc, argv);
 
-    if (InstanceLock::Init(L"GeneralsZeroHour.lock") == false)
+    if (sage::InstanceLock::Init(L"GeneralsZeroHour.lock") == false)
       return;
 
     sage::FileSystem::Init(std::filesystem::path(argv[0]).parent_path());
@@ -44,7 +37,7 @@ namespace genzh
 
   void Game::End()
   {
-    InstanceLock::End();
+    sage::InstanceLock::End();
   }
 
   Timestep Game::CalculateTimestep()

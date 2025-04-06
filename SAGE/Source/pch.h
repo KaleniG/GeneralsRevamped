@@ -6,8 +6,10 @@
 #include <functional>
 #include <fstream>
 #include <cstdlib>
+#include <codecvt>
 #include <string>
 #include <cstdio>
+#include <locale>
 #include <format>
 #include <bit>
 

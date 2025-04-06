@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <functional>
+#include <filesystem>
 #include <string>
 
 namespace sage
@@ -13,6 +14,7 @@ namespace sage
     static void Init();
     static void AddParameter(const std::string& arg, const ParseFunc& function);
     static void ParseArguments(int argc, char* argv[]);
+    static const std::filesystem::path& GetExecutablePath() { return CommandLine::Get().s_ExecutableFilepath; }
 
   private:
     static CommandLine& Get() { static CommandLine instance; return instance; }
@@ -28,5 +30,6 @@ namespace sage
 
   private:
     CommandLineArgToFuncMap s_CommandLineArgsToFuncMap;
+    std::filesystem::path s_ExecutableFilepath;
   };
 }

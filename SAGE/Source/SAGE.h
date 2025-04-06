@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/PlatformDetection.h"
+#include "Core/Utilities.h"
 #include "Core/Debug.h"
 
 #include "Engine/CommandLine.h"
