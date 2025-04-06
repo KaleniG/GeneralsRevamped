@@ -135,7 +135,7 @@ namespace sage
   }
 
   RAMFile::RAMFile()
-    : SAGEFile() {}
+    : SAGEFile(), m_Position(0) {}
 
   RAMFile::RAMFile(const std::filesystem::path& filepath)
     : SAGEFile(filepath), m_Position(0)

@@ -28,7 +28,7 @@ namespace genzh
     void* ParseUInt32Duration(const std::string& val);
   }
 
-  enum class TerrainLOD : uint32_t
+  enum class TerrainLOD
   {
     Invalid,
     Min,
