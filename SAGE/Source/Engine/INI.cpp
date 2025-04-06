@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "Engine/INIParser.h"
+#include "Engine/INI.h"
 #include "Engine/FileSystem.h"
 
 namespace sage
@@ -284,167 +284,167 @@ namespace sage
       std::string* stringValue = new std::string(stringToken);
       return (void*)stringValue;
     }
-  }
 
-  void INIParser::ResetAssociations()
-  {
-    INIParser::Get().s_AssociationMap.clear();
-  }
-
-  void INIParser::ParseFile(const std::filesystem::path& filepath, bool ignore_unknown_headers)
-  {
-    RAMFile file = FileSystem::OpenRAMFile(filepath);
-    std::vector<std::string> headTokens;
-    AssociationMap* currentHead = &INIParser::Get().s_AssociationMap;
-
-    while (!file.IsEndOfFile())
+    void Parser::ResetAssociations()
     {
-      std::string line;
-      if (file.GetLine(line) == false) 
-        break;
+      Parser::Get().s_AssociationMap.clear();
+    }
 
-      // Deleting everything that is after the ';' character, since it is a comment
+    void Parser::ParseFile(const std::filesystem::path& filepath, bool ignore_unknown_headers)
+    {
+      RAMFile file = FileSystem::OpenRAMFile(filepath);
+      std::vector<std::string> headTokens;
+      AssociationMap* currentHead = &Parser::Get().s_AssociationMap;
+
+      while (!file.IsEndOfFile())
       {
-        size_t pos = line.find(";");
-        if (pos != std::string::npos)
-          line.erase(pos);
-      }
+        std::string line;
+        if (file.GetLine(line) == false)
+          break;
 
-      if (std::strcmp(line.c_str(), "") == 0)
-        continue;
-
-      size_t spacePos = line.find_first_not_of(" =\n\r\t");
-      if (spacePos == std::string::npos)
-        continue;
-
-      std::string firstToken = line.substr(spacePos);
-      size_t endFirstToken = firstToken.find_first_of(" =\n\r\t");
-      firstToken = firstToken.substr(0, endFirstToken);
-      if (firstToken == "End" || firstToken == "END")
-      {
-        SAGE_ASSERT(!headTokens.empty(), "[SYSTEM] Read an 'End' header without a starting header in file '{}', position '{}'", file.GetFilepath().string(), file.GetPosition());
-        headTokens.pop_back();
-        currentHead = &INIParser::Get().s_AssociationMap;
-        for (const std::string& token : headTokens)
-          currentHead = (*currentHead)[token].SubAssociation.get();
-        continue;
-      }
-
-      std::string restOfString = line.substr(spacePos + endFirstToken);
-      if (restOfString.find_first_not_of(" =\n\r\t") == std::string::npos || restOfString.empty())
-        restOfString.clear();
-
-      SAGE_ASSERT(currentHead->find(firstToken) != currentHead->end() || ignore_unknown_headers, "[SYSTEM] Read and unknown header '{}' from file '{}', position '{}'", firstToken, file.GetFilepath().string(), file.GetPosition());
-      if (currentHead->find(firstToken) != currentHead->end())
-      {
-        if ((*currentHead)[firstToken].ParseCouple)
+        // Deleting everything that is after the ';' character, since it is a comment
         {
-          ParseCouple& couple = *(*currentHead)[firstToken].ParseCouple.get();
-          void* resultVal = couple.Method(restOfString);
-          if (couple.Reference)
-            std::memcpy(couple.Reference, resultVal, couple.ReferenceSize);
-          if (resultVal)
-            delete resultVal;
+          size_t pos = line.find(";");
+          if (pos != std::string::npos)
+            line.erase(pos);
         }
-        if ((*currentHead)[firstToken].SubAssociation)
+
+        if (std::strcmp(line.c_str(), "") == 0)
+          continue;
+
+        size_t spacePos = line.find_first_not_of(" =\n\r\t");
+        if (spacePos == std::string::npos)
+          continue;
+
+        std::string firstToken = line.substr(spacePos);
+        size_t endFirstToken = firstToken.find_first_of(" =\n\r\t");
+        firstToken = firstToken.substr(0, endFirstToken);
+        if (firstToken == "End" || firstToken == "END")
         {
-          headTokens.push_back(firstToken);
-          currentHead = (*currentHead)[firstToken].SubAssociation.get();
+          SAGE_ASSERT(!headTokens.empty(), "[SYSTEM] Read an 'End' header without a starting header in file '{}', position '{}'", file.GetFilepath().string(), file.GetPosition());
+          headTokens.pop_back();
+          currentHead = &Parser::Get().s_AssociationMap;
+          for (const std::string& token : headTokens)
+            currentHead = (*currentHead)[token].SubAssociation.get();
+          continue;
         }
-      }
-    }
-    SAGE_ASSERT(headTokens.empty(), "[SYSTEM] Not all headers ending with 'End' header in file '{}'", file.GetFilepath().string());
-  }
 
-  void INIParser::PrintAssociations()
-  {
-    for (const auto& headEntry : Get().s_AssociationMap)
-    {
-      const auto& head = headEntry.first;
-      const auto& assocStruct = headEntry.second;
+        std::string restOfString = line.substr(spacePos + endFirstToken);
+        if (restOfString.find_first_not_of(" =\n\r\t") == std::string::npos || restOfString.empty())
+          restOfString.clear();
 
-      if (assocStruct.SubAssociation)
-      {
-        SAGE_INFO("[TEST] |{}| has subassec", head);
-        INIParser::CheckSubAssociation(*assocStruct.SubAssociation, head);
-      }
-      else
-      {
-        SAGE_ERROR("[TEST] |{}| has no subassec", head);
-      }
-
-      if (assocStruct.ParseCouple)
-      {
-        SAGE_INFO("[TEST] |{}| has parsecouple", head);
-      }
-      else
-      {
-        SAGE_ERROR("[TEST] |{}| has no parsecouple", head);
-      }
-    }
-  }
-
-  void INIParser::CheckSubAssociation(const AssociationMap& subassoc_map, const std::string& parent_head)
-  {
-    for (const auto& subEntry : subassoc_map)
-    {
-      const auto& subAssoc = subEntry.first;
-      const auto& assocStruct = subEntry.second;
-
-      if (assocStruct.SubAssociation)
-      {
-        SAGE_INFO("[TEST] |{}|{}| has subassec", parent_head, subAssoc);
-        CheckSubAssociation(*assocStruct.SubAssociation, parent_head + "|" + subAssoc);
-      }
-      else
-      {
-        SAGE_ERROR("[TEST] |{}|{}| has no subassec", parent_head, subAssoc);
-      }
-
-      if (assocStruct.ParseCouple)
-      {
-        SAGE_INFO("[TEST] |{}|{}| has parsecouple", parent_head, subAssoc);
-      }
-      else
-      {
-        SAGE_ERROR("[TEST] |{}|{}| has no parsecouple", parent_head, subAssoc);
-      }
-    }
-  }
-
-  bool INIParser::ShrinkToFit(AssociationMap& subassoc_map)
-  {
-    bool anyChanges = false;
-
-    if (subassoc_map.empty())
-      return true;
-
-    for (auto it = subassoc_map.begin(); it != subassoc_map.end();)
-    {
-      auto& assoc = it->first;
-      auto& assocStruct = it->second;
-
-      if (assocStruct.SubAssociation)
-      {
-        if (INIParser::ShrinkToFit(*assocStruct.SubAssociation))
+        SAGE_ASSERT(currentHead->find(firstToken) != currentHead->end() || ignore_unknown_headers, "[SYSTEM] Read and unknown header '{}' from file '{}', position '{}'", firstToken, file.GetFilepath().string(), file.GetPosition());
+        if (currentHead->find(firstToken) != currentHead->end())
         {
-          if (assocStruct.SubAssociation->empty())
+          if ((*currentHead)[firstToken].ParseCouple)
           {
-            assocStruct.SubAssociation.reset();
-            anyChanges = true;
+            ParseCouple& couple = *(*currentHead)[firstToken].ParseCouple.get();
+            void* resultVal = couple.Method(restOfString);
+            if (couple.Reference)
+              std::memcpy(couple.Reference, resultVal, couple.ReferenceSize);
+            if (resultVal)
+              delete resultVal;
+          }
+          if ((*currentHead)[firstToken].SubAssociation)
+          {
+            headTokens.push_back(firstToken);
+            currentHead = (*currentHead)[firstToken].SubAssociation.get();
           }
         }
       }
-
-      if (!assocStruct.SubAssociation && !assocStruct.ParseCouple)
-      {
-        it = subassoc_map.erase(it);
-        anyChanges = true;
-      }
-      else
-        it++;
+      SAGE_ASSERT(headTokens.empty(), "[SYSTEM] Not all headers ending with 'End' header in file '{}'", file.GetFilepath().string());
     }
 
-    return anyChanges;
+    void Parser::PrintAssociations()
+    {
+      for (const auto& headEntry : Get().s_AssociationMap)
+      {
+        const auto& head = headEntry.first;
+        const auto& assocStruct = headEntry.second;
+
+        if (assocStruct.SubAssociation)
+        {
+          SAGE_INFO("[TEST] |{}| has subassec", head);
+          Parser::CheckSubAssociation(*assocStruct.SubAssociation, head);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}| has no subassec", head);
+        }
+
+        if (assocStruct.ParseCouple)
+        {
+          SAGE_INFO("[TEST] |{}| has parsecouple", head);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}| has no parsecouple", head);
+        }
+      }
+    }
+
+    void Parser::CheckSubAssociation(const AssociationMap& subassoc_map, const std::string& parent_head)
+    {
+      for (const auto& subEntry : subassoc_map)
+      {
+        const auto& subAssoc = subEntry.first;
+        const auto& assocStruct = subEntry.second;
+
+        if (assocStruct.SubAssociation)
+        {
+          SAGE_INFO("[TEST] |{}|{}| has subassec", parent_head, subAssoc);
+          Parser::CheckSubAssociation(*assocStruct.SubAssociation, parent_head + "|" + subAssoc);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}|{}| has no subassec", parent_head, subAssoc);
+        }
+
+        if (assocStruct.ParseCouple)
+        {
+          SAGE_INFO("[TEST] |{}|{}| has parsecouple", parent_head, subAssoc);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}|{}| has no parsecouple", parent_head, subAssoc);
+        }
+      }
+    }
+
+    bool Parser::ShrinkToFit(AssociationMap& subassoc_map)
+    {
+      bool anyChanges = false;
+
+      if (subassoc_map.empty())
+        return true;
+
+      for (auto it = subassoc_map.begin(); it != subassoc_map.end();)
+      {
+        auto& assoc = it->first;
+        auto& assocStruct = it->second;
+
+        if (assocStruct.SubAssociation)
+        {
+          if (Parser::ShrinkToFit(*assocStruct.SubAssociation))
+          {
+            if (assocStruct.SubAssociation->empty())
+            {
+              assocStruct.SubAssociation.reset();
+              anyChanges = true;
+            }
+          }
+        }
+
+        if (!assocStruct.SubAssociation && !assocStruct.ParseCouple)
+        {
+          it = subassoc_map.erase(it);
+          anyChanges = true;
+        }
+        else
+          it++;
+      }
+
+      return anyChanges;
+    }
   }
 }
