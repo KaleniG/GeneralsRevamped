@@ -15,6 +15,7 @@ project "SAGE"
     "%{IncludeDir.json}/**.hpp",
     "%{IncludeDir.glm}/**.hpp",
     "%{IncludeDir.glm}/**.inl",
+    "%{IncludeDir.asio}/**.hpp",
     "Source/**.cpp",
     "Source/**.h",
     "premake5.lua"
@@ -24,8 +25,21 @@ project "SAGE"
   {
     "Source",
     "%{IncludeDir.json}",
+    "%{IncludeDir.asio}",
     "%{IncludeDir.glm}"
   }
+
+  defines
+  {
+    "ASIO_STANDALONE"
+  }
+
+  filter { "system:Windows" }
+    links
+    {
+      "ws2_32.lib",
+      "iphlpapi.lib"
+    }
 
   filter { "configurations:Debug" }
     symbols "On"

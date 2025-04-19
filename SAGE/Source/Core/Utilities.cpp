@@ -1,15 +1,16 @@
 #include <pch.h>
 
 #if defined(PLATFORM_WINDOWS)
+#include <winsock2.h>
 #include <windows.h>
 #include <shlobj.h>
 #elif defined(PLATFORM_MACOS) || defined(PLATFORM_LINUX)
-#include <sys/stat.h>
-#include <sys/file.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <pwd.h>
 #endif
+
+#include <asio.hpp>
 
 #include "Core/Utilities.h"
 
@@ -142,7 +143,7 @@ namespace sage
 
   namespace User
   {
-    std::filesystem::path GetConfigCrossPlatformDirectory(const std::string& directory_name)
+    std::filesystem::path GetUserDataDirectory(const std::string& directory_name)
     {
       std::filesystem::path directory;
 
@@ -280,6 +281,36 @@ namespace sage
         std::filesystem::create_directories(directory);
       return directory;
     }
+
+    std::string GetLocalHostName()
+    {
+      return asio::ip::host_name();
+    }
+
+    std::vector<asio::ip::address_v4> GetLocalIPAddresses()
+    {
+      std::vector<asio::ip::address_v4> localIPs;
+      try
+      {
+        asio::io_context io_context; // Momentarely here but later should be located elsewhere, like in a networking class @TODO
+        std::string hostname = asio::ip::host_name();
+        asio::ip::tcp::resolver resolver(io_context); // same here
+        asio::ip::tcp::resolver::results_type results = resolver.resolve(hostname, "");
+
+        for (const auto& entry : results)
+        {
+          asio::ip::address addr = entry.endpoint().address();
+          if (addr.is_v4())
+            localIPs.push_back(addr.to_v4());
+        }
+      }
+      catch (const std::exception& e)
+      {
+        SAGE_ASSERT(false, "[SYSTEM] Caught an exception while trying to retrieve the local IPv4 addresses of the local host. Exception: '{}'", e.what());
+      }
+      
+      SAGE_ASSERT(!localIPs.empty(), "[SYSTEM] Failed to retrieve the local IP addresses");
+      return localIPs;
+    }
   }
-  
 }

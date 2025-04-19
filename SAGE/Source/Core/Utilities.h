@@ -2,8 +2,12 @@
 
 #define USE_LEGACY_DATA_DIRECTORY //Temporary
 
-#include <string>
 #include <filesystem>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include <asio.hpp>
 
 namespace sage
 {
@@ -17,6 +21,8 @@ namespace sage
 
   namespace User
   {
-    std::filesystem::path GetConfigCrossPlatformDirectory(const std::string& directory_name);
+    std::filesystem::path GetUserDataDirectory(const std::string& directory_name);
+    std::string GetLocalHostName();
+    std::vector<asio::ip::address_v4> GetLocalIPAddresses();
   }
 }

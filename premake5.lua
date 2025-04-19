@@ -5,6 +5,7 @@ IncludeDir = {}
 IncludeDir["SAGE"]  = "../SAGE/Source"
 IncludeDir["json"]  = "../Deps/json/single_include"
 IncludeDir["glm"]   = "../Deps/glm"
+IncludeDir["asio"]  = "../Deps/asio/asio/include"
 
 workspace "GeneralsRevamped"
   startproject "GeneralsZeroHour"
