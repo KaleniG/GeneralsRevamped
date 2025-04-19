@@ -73,7 +73,7 @@ namespace sage
 #endif
           currentSubAssoc->ParseCouple.reset();
         }
-        currentSubAssoc->ParseCouple = std::make_unique<ParseCouple>(method, (void*)reference, sizeof(*reference));
+        currentSubAssoc->ParseCouple = std::make_unique<WorkBlock>(method, (void*)reference, static_cast<int32_t>(sizeof(*reference)));
       }
       template <typename T>
       static void AddAssociation(T* reference, ParseMethod method, const std::string& head)
@@ -90,7 +90,7 @@ namespace sage
 #endif
           Parser::Get().s_AssociationMap[head].ParseCouple.reset();
         }
-        Parser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<ParseCouple>(method, (void*)reference, sizeof(*reference));
+        Parser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<WorkBlock>(method, (void*)reference, static_cast<int32_t>(sizeof(*reference)));
       }
       template <typename... Associations>
       static void AddAssociation(ParseMethod method, const std::string& head, Associations... association)
@@ -127,7 +127,7 @@ namespace sage
 #endif
           currentSubAssoc->ParseCouple.reset();
         }
-        currentSubAssoc->ParseCouple = std::make_unique<ParseCouple>(method, nullptr, 0);
+        currentSubAssoc->ParseCouple = std::make_unique<WorkBlock>(method, nullptr, 0);
       }
       static void AddAssociation(ParseMethod method, const std::string& head)
       {
@@ -142,7 +142,7 @@ namespace sage
 #endif
           Parser::Get().s_AssociationMap[head].ParseCouple.reset();
         }
-        Parser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<ParseCouple>(method, nullptr, 0);
+        Parser::Get().s_AssociationMap[head].ParseCouple = std::make_unique<WorkBlock>(method, nullptr, 0);
       }
       template <typename... Associations>
       static void DeleteAssociation(Associations... association)
@@ -179,16 +179,16 @@ namespace sage
       struct AssocStruct;
       using AssociationMap = std::unordered_map<std::string, AssocStruct>;
 
-      struct ParseCouple
+      struct WorkBlock
       {
-        ParseMethod Method;
+        ParseMethod ParseFunc;
         void* Reference = nullptr;
         int32_t ReferenceSize = 0;
       };
 
       struct AssocStruct
       {
-        std::unique_ptr<ParseCouple> ParseCouple;
+        std::unique_ptr<WorkBlock> ParseCouple;
         std::unique_ptr<AssociationMap> SubAssociation;
       };
 

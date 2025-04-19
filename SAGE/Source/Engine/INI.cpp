@@ -338,12 +338,14 @@ namespace sage
         {
           if ((*currentHead)[firstToken].ParseCouple)
           {
-            ParseCouple& couple = *(*currentHead)[firstToken].ParseCouple.get();
-            void* resultVal = couple.Method(restOfString);
+            WorkBlock& couple = *(*currentHead)[firstToken].ParseCouple.get();
+            void* resultVal = couple.ParseFunc(restOfString);
             if (couple.Reference)
+            {
               std::memcpy(couple.Reference, resultVal, couple.ReferenceSize);
-            if (resultVal)
-              delete resultVal;
+              if (resultVal)
+                delete resultVal;
+            }
           }
           if ((*currentHead)[firstToken].SubAssociation)
           {
