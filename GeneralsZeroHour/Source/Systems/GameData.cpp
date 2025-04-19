@@ -1,5 +1,6 @@
 #include <pch.h>
 
+#include <algorithm>
 #include <optional>
 #include <iostream>
 #include <vector>
@@ -8,6 +9,120 @@
 
 namespace genzh
 {
+  namespace INI
+  {
+    void* ParseGamma(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a float"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string gammaToken = val.substr(spacePos);
+      gammaToken = gammaToken.substr(0, gammaToken.find_first_of(" =\n\r\t"));
+
+      float* gammaValue = new float(std::stof(gammaToken));
+
+      if (*gammaValue <= 0)
+        *gammaValue = 0.6f;
+      else if (*gammaValue < 50.0f)
+        *gammaValue = 1.0f - 0.4f * (50.0f - *gammaValue) / 50.0f;
+      else if (*gammaValue > 50)
+        *gammaValue = 1.0f + 1.0f * (*gammaValue - 50.0f) / 50.0f;
+      else
+        *gammaValue = 1.0f;
+
+      return (void*)gammaValue;
+    }
+
+    void* ParseResolution(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing resolution vector of two signed 32 bit integers"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string resolutionToken = val.substr(spacePos);
+
+      glm::ivec2* resolutionValue = new glm::ivec2();
+
+      spacePos = resolutionToken.find_first_of(" \r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No 'X' resolution token found while parsing resolution vector of two signed 32 bit integers");
+      std::string xToken = resolutionToken.substr(0, spacePos);
+      resolutionValue->x = std::stoi(xToken);
+      resolutionToken = resolutionToken.substr(spacePos);
+
+      spacePos = resolutionToken.find_first_of(" \r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No 'Y' resolution token found while parsing resolution vector of two signed 32 bit integers");
+      std::string yToken = resolutionToken.substr(spacePos);
+      resolutionValue->y = std::stoi(yToken);
+
+      return (void*)resolutionValue;
+    }
+
+    void* ParseScrollFactor(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing a scroll factor that is an signed 32 bit integer"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string scrollFactorToken = val.substr(spacePos);
+      scrollFactorToken = scrollFactorToken.substr(0, scrollFactorToken.find_first_of(" =\n\r\t"));
+
+      int32_t scrollFactorValue = std::clamp(std::stoi(scrollFactorToken), 0, 100);
+
+      float* scrollFactorFloatValue = new float(static_cast<float>(scrollFactorValue) / 100.0f);
+
+      return (void*)scrollFactorFloatValue;
+    }
+
+    std::string SerializeGamma(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to a gamma float value");
+
+      std::string gammaString;
+      gammaString.append(" = ");
+
+      float* gammaValue = static_cast<float*>(val);
+
+      int32_t serializeGammaValue = 50;
+
+      if (*gammaValue < 1.0f)
+        serializeGammaValue = static_cast<int>(50 - ((1.0f - *gammaValue) * 50.0f / 0.4f));
+      else if (*gammaValue > 1.0f)
+        serializeGammaValue = static_cast<int>(50 + ((*gammaValue - 1.0f) * 50.0f));
+
+      serializeGammaValue = std::clamp(serializeGammaValue, 0, 100);
+
+      gammaString.append(std::to_string(serializeGammaValue));
+
+      return gammaString;
+    }
+
+    std::string SerializeResolution(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to a resolution vector of two 32 bit integers");
+
+      std::string resolutionString;
+      resolutionString.append(" = ");
+
+      glm::ivec2* resolutionValue = static_cast<glm::ivec2*>(val);
+
+      resolutionString.append(std::to_string(resolutionValue->x));
+      resolutionString.append(" ");
+      resolutionString.append(std::to_string(resolutionValue->y));
+
+      return resolutionString;
+    }
+
+    std::string SerializeScrollFactor(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to an scroll factor float value");
+
+      std::string scrollFactorString;
+      scrollFactorString.append(" = ");
+
+      float* scrollFactorValue = static_cast<float*>(val);
+      int32_t scrollFactorInt32Value = static_cast<int32_t>(std::clamp(*scrollFactorValue, 0.0f, 100.0f) * 100.0f);
+
+      scrollFactorString.append(std::to_string(scrollFactorInt32Value));
+
+      return scrollFactorString;
+    }
+  }
+
   void* GameData::ParseWeaponBonus(const std::string& val)
   {
     size_t spacePos = val.find_first_not_of(" =\r\n\t");
@@ -109,7 +224,7 @@ namespace genzh
 
     set.Add(weaponBonusConditionValue.value(), weaponBonusTypeValue.value(), weaponBonusValue);
 
-    return nullptr;
+    return (void*)&set;
   }
 
   void* GameData::ParsePublicBone(const std::string& val)
@@ -122,7 +237,7 @@ namespace genzh
     auto& bones = GameData::Get().s_StandardPublicBones;
     bones.push_back(publicBoneToken);
 
-    return nullptr;
+    return (void*)&bones;
   }
 
   GameData::GameData()

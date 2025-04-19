@@ -10,6 +10,7 @@ project "GeneralsZeroHour"
   {
     "Source/**.cpp",
     "Source/**.h",
+    "%{IncludeDir.asio}/**.hpp",
     "premake5.lua"
   }
 
@@ -17,7 +18,8 @@ project "GeneralsZeroHour"
   {
     "Source",
     "%{IncludeDir.SAGE}",
-    "%{IncludeDir.glm}"
+    "%{IncludeDir.glm}",
+    "%{IncludeDir.asio}"
   }
 
   links
