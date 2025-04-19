@@ -1,6 +1,7 @@
 #include <pch.h>
 
 #include <glm/glm.hpp>
+#include <asio.hpp>
 
 #include "Engine/INI.h"
 #include "Engine/FileSystem.h"
@@ -285,6 +286,92 @@ namespace sage
       return (void*)stringValue;
     }
 
+    void* ParseIPv4Address(const std::string& val)
+    {
+      size_t spacePos = val.find_first_not_of(" =\r\n\t");
+      SAGE_ASSERT(spacePos != std::string::npos, "[SYSTEM] No value read while parsing an IPv4 Address string"); // Hoping nothing breaks here, when no token found 'spacePos' has an extremely high value
+      std::string ipv4AddressToken = val.substr(spacePos);
+      ipv4AddressToken = ipv4AddressToken.substr(0, ipv4AddressToken.find_first_of(" =\n\r\t"));
+
+      asio::ip::address_v4* ipv4AddressValue = new asio::ip::address_v4(asio::ip::make_address_v4(ipv4AddressToken));
+      SAGE_ASSERT(!ipv4AddressValue->is_unspecified(), "[SYSTEM] Failed to parse the IPv4 Asio Address");
+      return (void*)ipv4AddressValue;
+    }
+
+    std::string SerializeNothing(void* val)
+    {
+      SAGE_WARN("[SYSTEM] Serializing nothing. File: '{}'. Line: '{}'", __FILE__, __LINE__);
+      return std::string();
+    }
+
+    std::string SerializeBool(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to a bool value");
+
+      std::string boolString;
+      boolString.append(" = ");
+
+      bool* boolValue = static_cast<bool*>(val);
+      if (*boolValue == true)
+        boolString.append("Yes");
+      else
+        boolString.append("No");
+
+      return boolString;
+    }
+
+    std::string SerializeFloat(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to a float value");
+
+      std::string floatString;
+      floatString.append(" = ");
+
+      float* floatValue = static_cast<float*>(val);
+      floatString.append(std::to_string(*floatValue));
+
+      return floatString;
+    }
+
+    std::string SerializeInt16(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to an signed 16 bit integer value");
+
+      std::string int16String;
+      int16String.append(" = ");
+
+      uint16_t* int16Value = static_cast<uint16_t*>(val);
+      int16String.append(std::to_string(*int16Value));
+
+      return int16String;
+    }
+
+    std::string SerializeUInt32(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to an unsigned 32 bit integer value");
+
+      std::string uint32String;
+      uint32String.append(" = ");
+
+      uint32_t* uint32Value = static_cast<uint32_t*>(val);
+      uint32String.append(std::to_string(*uint32Value));
+
+      return uint32String;
+    }
+
+    std::string SerializeIPv4Address(void* val)
+    {
+      SAGE_ASSERT(val, "[SYSTEM] Invalid pointer to an Asio IPv4 Address value");
+
+      std::string ipv4AddressString;
+      ipv4AddressString.append(" = ");
+
+      asio::ip::address_v4* ipv4AddressValue = static_cast<asio::ip::address_v4*>(val);
+      ipv4AddressString.append(ipv4AddressValue->to_string());
+
+      return ipv4AddressString;
+    }
+
     void Parser::ResetAssociations()
     {
       Parser::Get().s_AssociationMap.clear();
@@ -447,6 +534,191 @@ namespace sage
       }
 
       return anyChanges;
+    }
+
+    void Serializer::ParseFile(const std::filesystem::path filepath, bool ignore_unknown_headers)
+    {
+      m_File = FileSystem::OpenDiskFile(filepath, std::ios::in);
+
+      SAGE_ASSERT(m_File, "[SYSTEM] The file is invalid");
+
+      std::vector<std::string> headTokens;
+      AssociationMap* currentHead = &m_AssociationMap;
+
+      while (!m_File.IsEndOfFile())
+      {
+        std::string line;
+        if (m_File.GetLine(line) == false)
+          break;
+
+        // Deleting everything that is after the ';' character, since it is a comment
+        {
+          size_t pos = line.find(";");
+          if (pos != std::string::npos)
+            line.erase(pos);
+        }
+
+        if (std::strcmp(line.c_str(), "") == 0)
+          continue;
+
+        size_t spacePos = line.find_first_not_of(" =\n\r\t");
+        if (spacePos == std::string::npos)
+          continue;
+
+        std::string firstToken = line.substr(spacePos);
+        size_t endFirstToken = firstToken.find_first_of(" =\n\r\t");
+        firstToken = firstToken.substr(0, endFirstToken);
+        if (firstToken == "End" || firstToken == "END")
+        {
+          SAGE_ASSERT(!headTokens.empty(), "[SYSTEM] Read an 'End' header without a starting header in file '{}', position '{}'", m_File.GetFilepath().string(), m_File.GetPosition());
+          headTokens.pop_back();
+          currentHead = &m_AssociationMap;
+          for (const std::string& token : headTokens)
+            currentHead = (*currentHead)[token].SubAssociation.get();
+          continue;
+        }
+
+        std::string restOfString = line.substr(spacePos + endFirstToken);
+        if (restOfString.find_first_not_of(" =\n\r\t") == std::string::npos || restOfString.empty())
+          restOfString.clear();
+
+        SAGE_ASSERT(currentHead->find(firstToken) != currentHead->end() || ignore_unknown_headers, "[SYSTEM] Read and unknown header '{}' from file '{}', position '{}'", firstToken, m_File.GetFilepath().string(), m_File.GetPosition());
+        if (currentHead->find(firstToken) != currentHead->end())
+        {
+          if ((*currentHead)[firstToken].WorkBlock)
+          {
+            WorkBlock& couple = *(*currentHead)[firstToken].WorkBlock.get();
+            if (couple.TempReference)
+            {
+              couple.Reference = nullptr;
+              couple.TempReference = false;
+            }
+            void* resultVal = couple.ParseFunc(restOfString);
+            if (couple.Reference)
+            {
+              std::memcpy(couple.Reference, resultVal, couple.ReferenceSize);
+              if (resultVal)
+                delete resultVal;
+            }
+            else
+            {
+              couple.Reference = &resultVal;
+              couple.TempReference = true;
+            }
+          }
+          if ((*currentHead)[firstToken].SubAssociation)
+          {
+            headTokens.push_back(firstToken);
+            currentHead = (*currentHead)[firstToken].SubAssociation.get();
+          }
+        }
+      }
+      m_File = DiskFile();
+      SAGE_ASSERT(headTokens.empty(), "[SYSTEM] Not all headers ending with 'End' header in file '{}'", m_File.GetFilepath().string());
+    }
+
+    void Serializer::UpdateFile(const std::filesystem::path filepath)
+    {
+      m_File = FileSystem::OpenDiskFile(filepath, std::ios::out | std::ios::trunc);
+
+      SAGE_ASSERT(m_File, "[SYSTEM] The file is invalid");
+
+      for (const auto& headEntry : m_AssociationMap)
+      {
+        const auto& head = headEntry.first;
+        const auto& assocStruct = headEntry.second;
+
+        if (assocStruct.SubAssociation)
+          Serializer::UpdateSubAssociation(*assocStruct.SubAssociation);
+
+        if (assocStruct.WorkBlock)
+        {
+          std::string resultString;
+          resultString.append(head);
+          resultString.append(assocStruct.WorkBlock->SerializeFunc(assocStruct.WorkBlock->Reference));
+          resultString.append("\n");
+          m_File.Write(resultString.data(), resultString.size());
+        }
+      }
+      m_File = DiskFile();
+    }
+
+    void Serializer::PrintAssociations()
+    {
+      for (const auto& headEntry : m_AssociationMap)
+      {
+        const auto& head = headEntry.first;
+        const auto& assocStruct = headEntry.second;
+
+        if (assocStruct.SubAssociation)
+        {
+          SAGE_INFO("[TEST] |{}| has subassec", head);
+          Serializer::CheckSubAssociation(*assocStruct.SubAssociation, head);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}| has no subassec", head);
+        }
+
+        if (assocStruct.WorkBlock)
+        {
+          SAGE_INFO("[TEST] |{}| has parsecouple", head);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}| has no parsecouple", head);
+        }
+      }
+    }
+
+    void Serializer::CheckSubAssociation(const AssociationMap& subassoc_map, const std::string& parent_head)
+    {
+      for (const auto& subEntry : subassoc_map)
+      {
+        const auto& subAssoc = subEntry.first;
+        const auto& assocStruct = subEntry.second;
+
+        if (assocStruct.SubAssociation)
+        {
+          SAGE_INFO("[TEST] |{}|{}| has subassec", parent_head, subAssoc);
+          Serializer::CheckSubAssociation(*assocStruct.SubAssociation, parent_head + "|" + subAssoc);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}|{}| has no subassec", parent_head, subAssoc);
+        }
+
+        if (assocStruct.WorkBlock)
+        {
+          SAGE_INFO("[TEST] |{}|{}| has parsecouple", parent_head, subAssoc);
+        }
+        else
+        {
+          SAGE_ERROR("[TEST] |{}|{}| has no parsecouple", parent_head, subAssoc);
+        }
+      }
+    }
+
+    void Serializer::UpdateSubAssociation(const AssociationMap& subassoc_map)
+    {
+      for (const auto& headEntry : subassoc_map)
+      {
+        const auto& head = headEntry.first;
+        const auto& assocStruct = headEntry.second;
+
+        if (assocStruct.SubAssociation)
+          Serializer::UpdateSubAssociation(*assocStruct.SubAssociation);
+
+        if (assocStruct.WorkBlock)
+        {
+          std::string resultString;
+          resultString.append(head);
+          resultString.append(" = "); // may not work out later, yes mostly all of the files that I will need to serialize won't have two level associations but that one from the user maps folder has it and the main header doesn't use the '=', the problem with this is that it will serialize and be parse properly in my version of the game but not in the original game, bruh @TODO
+          // OK maybe i found a solution and that is to add the '=' in the SSerialize method instead, that may work out better but for now shush
+          resultString.append(assocStruct.WorkBlock->SerializeFunc(assocStruct.WorkBlock->Reference));
+          m_File.Write(resultString.data(), static_cast<int32_t>(resultString.size()));
+        }
+      }
     }
   }
 }
