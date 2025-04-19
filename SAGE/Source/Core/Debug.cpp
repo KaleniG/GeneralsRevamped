@@ -108,21 +108,6 @@ namespace sage
     }
 #endif
     finalMessage.append("[" + time + "]");
-    switch (level)
-    {
-    case LogLevel::Info:
-      finalMessage.append("[INFO]  ");
-      break;
-    case LogLevel::Warn:
-      finalMessage.append("[WARN]  ");
-      break;
-    case LogLevel::Error:
-      finalMessage.append("[ERROR] ");
-      break;
-    case LogLevel::Assert:
-      finalMessage.append("[ASSERT]");
-      break;
-    }
     finalMessage.append(message);
 #if !defined(PLATFORM_WINDOWS)
     finalMessage.append("\033[0m");
